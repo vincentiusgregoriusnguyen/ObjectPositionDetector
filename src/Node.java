@@ -7,6 +7,15 @@ public class Node {
 	boolean visited = false;
 	ArrayList<Node> neighbours;	
 	Node parent = null;
+	boolean processed = false;
+
+	public boolean isProcessed() {
+		return processed;
+	}
+
+	public void setProcessed(boolean processed) {
+		this.processed = processed;
+	}
 
 	public Node(Coordinates c, int v){
 		this.coordinates = c;
