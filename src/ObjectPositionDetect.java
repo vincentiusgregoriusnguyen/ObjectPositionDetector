@@ -51,7 +51,6 @@ public class ObjectPositionDetect {
         maze = readMaze("resized.png");
         devide(maze);
         createModifiedGraph(maze);
-       // System.out.println("Number of nodes: " + allthenodes.size());
    
         for(int i = 16; i < 28; i++){
         	for(int j = 20; j < 30; j++){
@@ -65,7 +64,6 @@ public class ObjectPositionDetect {
         }
         constructImage(maze,"justtesting.png");
         breadthfirstsearch(); 
-        //System.out.println("BFS ended");
         constructImage(maze,"ended.png");
         int[][] temp = maze.clone();
         maze = readMaze("maze2.jpg");
@@ -91,17 +89,13 @@ public class ObjectPositionDetect {
     		Node temp1 = traversednodes.get(current1);
     		Node temp2 = traversednodes.get(current2);
     		
-    		int temp1x = temp1.getCoordinates().getX();
-    		int temp1y = temp1.getCoordinates().getY();
+    		int temp1x = temp1.getCoordinates().getY();
+    		int temp1y = temp1.getCoordinates().getX();
     		
-    		int temp2x = temp2.getCoordinates().getX();
-    		int temp2y = temp2.getCoordinates().getY();
-    		
-    		System.out.println("Node1: " +  temp1.getCoordinates());
-    		System.out.println("Node2: " + temp2.getCoordinates());
+    		int temp2x = temp2.getCoordinates().getY();
+    		int temp2y = temp2.getCoordinates().getX();
     		
     		if(direction == north){
-    			System.out.println("North");
     			if(temp1y > temp2y){
     				directions.add(forward);
     			}
@@ -118,7 +112,6 @@ public class ObjectPositionDetect {
     		}
     		
     		if(direction == east){
-    			System.out.println("East");
     			if(temp1x < temp2x){
     				directions.add(forward);
     			}
@@ -135,7 +128,6 @@ public class ObjectPositionDetect {
     		}
     		
     		if(direction == south){
-    			System.out.println("South");
     			if(temp1y < temp2y){
     				directions.add(forward);
     			}
@@ -152,7 +144,6 @@ public class ObjectPositionDetect {
     		}
     		
     		if(direction == west){
-    			System.out.println("West");
     			if(temp1x > temp2x){
     				directions.add(forward);
     			}
@@ -169,7 +160,6 @@ public class ObjectPositionDetect {
     		}
     		current1++; current2++;
     	}
-    //	System.out.println("Number of directions: " + directions.size());
     }
     	
     
@@ -299,7 +289,6 @@ public class ObjectPositionDetect {
         		 }
         	 }
          }
-         //System.out.println("Most top:" + mostTop + " Most Bottom" + mostBottom + " Most left:" + mostLeft + " Most right:" + mostRight);      
          
          int verticle = mostBottom.getY() - mostTop.getY();
          int horizontal = mostRight.getX() - mostLeft.getX();
