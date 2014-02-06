@@ -13,16 +13,14 @@ import static com.googlecode.javacv.cpp.opencv_imgproc.cvGetSpatialMoment;
 import static com.googlecode.javacv.cpp.opencv_imgproc.cvGetCentralMoment;
 import static com.googlecode.javacv.cpp.opencv_imgproc.cvMoments;
 
-import java.awt.Dimension;
+
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Queue;
-import java.util.Set;
 
 import javax.imageio.ImageIO;
 
@@ -34,19 +32,26 @@ public class ObjectPositionDetect {
     static int hueUpperR = 180;
 	static int[][] maze;
 	static ArrayList<Node> allthenodes = null;
+	static ArrayList<Node> traversednodes = new ArrayList<Node>();
 	static int divider = 5;
+	static Node endnode = null;
+	static char direction = 'e';
+	static ArrayList<String> directions = new ArrayList<String>();
 	
     public static void main(String[] args) throws IOException {
-
-
+    //	extractRobot("Triangle.jpg");
+    //	findRobotDirection();
+    //	System.out.println("done");
+    	
+    	int factor = 2;
     	maze = readMaze("maze2.jpg");
     	maze = increaseBlackSpace(8);
     	constructImage(maze,"testing.png");
-    	resize(2,"testing.png");
+    	resize(factor,"testing.png");
         maze = readMaze("resized.png");
         devide(maze);
         createModifiedGraph(maze);
-        int x = 0;
+       // System.out.println("Number of nodes: " + allthenodes.size());
    
         for(int i = 16; i < 28; i++){
         	for(int j = 20; j < 30; j++){
@@ -59,13 +64,178 @@ public class ObjectPositionDetect {
         	}
         }
         constructImage(maze,"justtesting.png");
-        breadthfirstsearch(); System.out.println("BFS ended");
+        breadthfirstsearch(); 
+        //System.out.println("BFS ended");
         constructImage(maze,"ended.png");
         int[][] temp = maze.clone();
         maze = readMaze("maze2.jpg");
-        enlargeMaze(2,maze,temp);
-        constructImage(maze,"fina.png");
+        enlargeMaze(factor,maze,temp);
+        TraversedNodes(factor);
+        drawLines();
+        constructImage(maze,"final.png");
+        findPath(); 
+        printDirections();
     }
+    
+    public static void printDirections(){
+    	for(String x: directions){
+    		System.out.println(x);
+    	}
+    }
+    
+    public static void findPath(){
+    	String forward = "Forward", right = "Right", left = "Left";
+    	char north = 'n', east = 'e', south = 's', west = 'w';
+    	int current1 = 0, current2 = 1;
+    	while(current2 < traversednodes.size()){
+    		Node temp1 = traversednodes.get(current1);
+    		Node temp2 = traversednodes.get(current2);
+    		
+    		int temp1x = temp1.getCoordinates().getX();
+    		int temp1y = temp1.getCoordinates().getY();
+    		
+    		int temp2x = temp2.getCoordinates().getX();
+    		int temp2y = temp2.getCoordinates().getY();
+    		
+    		System.out.println("Node1: " +  temp1.getCoordinates());
+    		System.out.println("Node2: " + temp2.getCoordinates());
+    		
+    		if(direction == north){
+    			System.out.println("North");
+    			if(temp1y > temp2y){
+    				directions.add(forward);
+    			}
+    			if(temp1x < temp2x){
+    				directions.add(right);
+    				directions.add(forward);
+    				direction = east;
+    			}
+    			if(temp1x > temp2x){
+    				directions.add(left);
+    				directions.add(forward);
+    				direction = west;
+    			}	
+    		}
+    		
+    		if(direction == east){
+    			System.out.println("East");
+    			if(temp1x < temp2x){
+    				directions.add(forward);
+    			}
+    			if(temp1y > temp2y){
+    				directions.add(left);
+    				directions.add(forward);
+    				direction = north;
+    			}
+    			if(temp1y < temp2y){
+    				directions.add(right);
+    				directions.add(forward);
+    				direction = south;
+    			}
+    		}
+    		
+    		if(direction == south){
+    			System.out.println("South");
+    			if(temp1y < temp2y){
+    				directions.add(forward);
+    			}
+    			if(temp1x > temp2x){
+    				directions.add(right);
+    				directions.add(forward);
+    				direction = west;
+    			}
+    			if(temp1x < temp2x){
+    				directions.add(left);
+    				directions.add(forward);
+    				direction = east;
+    			}
+    		}
+    		
+    		if(direction == west){
+    			System.out.println("West");
+    			if(temp1x > temp2x){
+    				directions.add(forward);
+    			}
+    			if(temp1y > temp2y){
+    				directions.add(right);
+    				directions.add(forward);
+    				direction = north;
+    			}
+    			if(temp1y < temp2y){
+    				directions.add(left);
+    				directions.add(forward);
+    				direction = south;
+    			}
+    		}
+    		current1++; current2++;
+    	}
+    //	System.out.println("Number of directions: " + directions.size());
+    }
+    	
+    
+    public static void drawLines(){
+    	int current1 = 0, current2 = 1;
+    	while(current2 < traversednodes.size()){
+    		Node temp1 = traversednodes.get(current1);
+    		Node temp2 = traversednodes.get(current2);
+    		int temp1x = temp1.getCoordinates().getX();
+    		int temp1y = temp1.getCoordinates().getY();
+    		int temp2x = temp2.getCoordinates().getX();
+    		int temp2y = temp2.getCoordinates().getY();
+    		
+    		if(temp1x == temp2x){
+    			if(temp1y < temp2y){
+    				for(int i = temp1y; i < temp2y; i++){
+    					maze[i][temp1x] = 5;
+    				}
+    			}
+    			if(temp2y < temp1y){
+    				for(int i = temp2y; i < temp1y; i++){
+    					maze[i][temp1x] = 5;
+    				}
+    			}
+    		}
+    		if(temp1y == temp2y){
+    			if(temp1x < temp2x){
+    				for(int i = temp1x; i < temp2x; i++){
+    					maze[temp1y][i] = 5;
+    				}
+    			}
+    			if(temp2x < temp1x){
+    				for(int i = temp2x; i < temp1x; i++){
+    					maze[temp1y][i] = 5;
+    				}
+    			}
+    		}
+    		current1++; current2++;
+    	}
+    }
+    
+    public static void TraversedNodes(int factor){
+    	ArrayList<Node> temp = new ArrayList<Node>();
+    	Node current = endnode;
+    	while(current.parent != null){
+    		temp.add(current);
+    		current = current.getParent();
+    	}
+    	temp.add(current);
+    	ArrayList<Node> temp2 = new ArrayList<Node>();
+    	
+    	int n = temp.size() - 1;
+    	for(int i = 0; i < temp.size(); i++){
+    		temp2.add(temp.get(n - i));
+    	}
+    	for(Node k: temp2){
+    		traversednodes.add(new Node(new Coordinates(k.getCoordinates().getY() * factor, k.getCoordinates().getX()*factor),k.getValue()));
+    	}
+    }
+    
+    public static void prinAlltNodes(){
+    	for(Node n: allthenodes){
+    		System.out.println(n.getCoordinates());
+    	}
+    }
+    
     
     public static void enlargeMaze(int factor,int[][] large, int[][] small){
     	for(int i = 0; i < small.length; i++){
@@ -93,7 +263,60 @@ public class ObjectPositionDetect {
         return temp;
     }
     
-    public static void extractRobot(String filename){
+    public static void findRobotDirection() throws IOException{
+    	BufferedImage temp = ImageIO.read(new File("robot.png"));
+         int[][] pixels = new int[temp.getWidth()][temp.getHeight()];
+
+         for (int x = 0; x < temp.getWidth(); x++) {
+             for (int y = 0; y < temp.getHeight(); y++) {
+                 pixels[x][y] = (temp.getRGB(x, y) == 0xFFFFFFFF ? 1 : 0);
+             }
+         }
+         
+         char temp1 = 'n';
+         
+         
+         Coordinates mostLeft = new Coordinates(0, pixels[0].length);
+         Coordinates mostRight = new Coordinates(0,0);
+         Coordinates mostTop = new Coordinates(pixels.length, 0);
+         Coordinates mostBottom = new Coordinates(0,0);
+         
+         for(int i = 0; i < pixels.length; i++){
+        	 for(int j = 0; j < pixels[0].length; j++){
+        		 if(pixels[i][j] == 1){
+        			   if(mostLeft.getX() > j){
+        				   mostLeft = new Coordinates(i,j);
+        			   } 
+        			   if(mostRight.getX() < j){
+        				   mostRight = new Coordinates(i,j);
+        			   }
+        			   if(mostTop.getY() > i){
+        				   mostTop = new Coordinates(i,j);
+        			   }
+        			   if(mostBottom.getY() < j){
+        				   mostBottom = new Coordinates(i,j);
+        			   }
+        		 }
+        	 }
+         }
+         //System.out.println("Most top:" + mostTop + " Most Bottom" + mostBottom + " Most left:" + mostLeft + " Most right:" + mostRight);      
+         
+         int verticle = mostBottom.getY() - mostTop.getY();
+         int horizontal = mostRight.getX() - mostLeft.getX();
+         
+         System.out.println("Verticle: " + verticle + "Horizontal: " + horizontal);
+         
+         if(verticle > horizontal){
+        	 System.out.println("Robot is facing north or south");
+         }
+         if(horizontal > verticle){
+        	 System.out.println("Robot is facing east or west");
+         }
+    
+    }
+    
+
+	public static void extractRobot(String filename){
     	IplImage orgImg = cvLoadImage(filename);
         IplImage thresholdImage = hsvThreshold(orgImg);
         cvSaveImage("robot.png", thresholdImage);
@@ -109,19 +332,10 @@ public class ObjectPositionDetect {
     	for(int i = 0; i < maze2.length; i++){
 			for(int j = 0; j < maze2[0].length; j++){
 				if(maze[i][j] == 0){
-					if(i - t >= 0){
-						for(int k = 0; k < t; k++){maze2[i - k][j] = 0;}
-					}
-					if(i + 20 <= maze.length - 1){
-						for(int k = 0; k < t; k++){maze2[i + k][j] = 0;}
-					}
-					if(j - 20 >= 0){
-						for(int k = 0; k < t; k++){maze2[i][j - k] = 0;}
-					}
-					if(j + 20 <= maze[0].length - 1){
-						for(int k = 0; k < t; k++){maze2[i][j+k] = 0;}
-					}
-					
+					if(i - t >= 0){for(int k = 0; k < t; k++){maze2[i - k][j] = 0;}}
+					if(i + 20 <= maze.length - 1){for(int k = 0; k < t; k++){maze2[i + k][j] = 0;}}
+					if(j - 20 >= 0){for(int k = 0; k < t; k++){maze2[i][j - k] = 0;}}
+					if(j + 20 <= maze[0].length - 1){for(int k = 0; k < t; k++){maze2[i][j+k] = 0;}}
 				}
 			}
 		}
@@ -209,6 +423,7 @@ public class ObjectPositionDetect {
 				}
 			}
 		}
+		endnode = end;
 		Node current = end;
 		while(current.parent != null){
 			maze[current.getCoordinates().getY()][current.getCoordinates().getX()] = 5;
@@ -220,7 +435,7 @@ public class ObjectPositionDetect {
     public static void createModifiedGraph(int[][] maze2){
     	System.out.println("Created modified graph started");
     	ArrayList<Node> nodes = new ArrayList<Node>();
-    	
+ 
     	for(int i = 0; i < maze2.length; i++){
     		for(int j = 0; j < maze2[0].length; j++){
     			if(maze2[i][j] == 4){
@@ -274,8 +489,6 @@ public class ObjectPositionDetect {
 			n.setNeighbours(neighbour);
 			x++;
 		}
-		allthenodes = nodes;
-		System.out.println("Total number of nodes: " + allthenodes.size());
 	}
     
     static int[][] readMaze(String z) throws IOException{
